@@ -36,7 +36,6 @@ func (p *Proxy) Handle(w http.ResponseWriter, r *http.Request) {
 	clientConn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("Failed to upgrade the connection to WebSocket connection!")
-		log.Println(err)
 		return
 	}
 	defer clientConn.Close()
@@ -51,9 +50,21 @@ func (p *Proxy) Handle(w http.ResponseWriter, r *http.Request) {
 	// starting bidirectional communication
 	done := make(chan struct{})
 
-	// client to oai
+	// clientConn -> openaiConn
 	go func() {
-		defer close(done)
+		defer func() {
+			// ensure cleanup happens here
+			openaiConn.Close()
+			clientConn.Close()
+			log.Println("Connection closed.")
+
+			select {
+			case <-done:
+			default:
+				close(done)
+			}
+		}()
+
 		for {
 			messageType, msg, err := clientConn.ReadMessage()
 			if err != nil {
@@ -67,9 +78,19 @@ func (p *Proxy) Handle(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	// oai to client
+	// openaiConn -> clientConn
 	go func() {
-		defer close(done)
+		defer func() {
+			openaiConn.Close()
+			clientConn.Close()
+			log.Println("Connection closed.")
+			select {
+			case <-done:
+			default:
+				close(done)
+			}
+		}()
+
 		for {
 			messageType, msg, err := openaiConn.ReadMessage()
 			if err != nil {
@@ -84,10 +105,7 @@ func (p *Proxy) Handle(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	<-done
-	clientConn.Close()
-	openaiConn.Close()
-
-	log.Println("Connection closed.")
+	log.Println("Bidirectional communication ended.")
 }
 
 func (p *Proxy) connectOpenAI() (*websocket.Conn, *http.Response, error) {
