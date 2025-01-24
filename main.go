@@ -6,10 +6,9 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-
-	realtime "github.com/semioz/go-realtime"
 )
 
+// usage example:
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -21,9 +20,9 @@ func main() {
 		log.Fatal("OPENAI_API_KEY is not set in environment variables.")
 	}
 
-	proxy := realtime.NewProxy(
+	proxy := NewProxy(
 		apiToken,
-		realtime.defaultWSSURL,
+		defaultWSSURL,
 	)
 
 	http.HandleFunc("/ws", proxy.Handle)

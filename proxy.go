@@ -23,7 +23,7 @@ type Message struct {
 	Data interface{} `json:"data"`
 }
 
-func NewProxy(apiToken string) *Proxy {
+func NewProxy(apiToken string, wssURL string) *Proxy {
 	return &Proxy{
 		APIToken: apiToken,
 		WSSURL:   defaultWSSURL,
