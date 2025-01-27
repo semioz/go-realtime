@@ -6,9 +6,11 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/semioz/go-realtime"
 )
 
-// usage example:
+const defaultWSSURL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01"
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -20,7 +22,7 @@ func main() {
 		log.Fatal("OPENAI_API_KEY is not set in environment variables.")
 	}
 
-	proxy := NewProxy(
+	proxy := realtime.NewProxy(
 		apiToken,
 		defaultWSSURL,
 	)

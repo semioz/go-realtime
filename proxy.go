@@ -1,4 +1,4 @@
-package main
+package realtime
 
 import (
 	"fmt"
@@ -9,8 +9,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 )
-
-const defaultWSSURL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01"
 
 type Proxy struct {
 	APIToken string
@@ -26,7 +24,7 @@ type Message struct {
 func NewProxy(apiToken string, wssURL string) *Proxy {
 	return &Proxy{
 		APIToken: apiToken,
-		WSSURL:   defaultWSSURL,
+		WSSURL:   wssURL,
 		Upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
 				return true
@@ -36,7 +34,6 @@ func NewProxy(apiToken string, wssURL string) *Proxy {
 }
 
 func (p *Proxy) Handle(w http.ResponseWriter, r *http.Request) {
-
 	clientConn, err := p.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("Failed to upgrade the connection to WebSocket connection!")
